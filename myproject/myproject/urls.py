@@ -15,7 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from myapp import views as basic_views
 
 urlpatterns = [
+    url(r'^signup/$', basic_views.signup, name='signup'),
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout,{'template_name': 'registration/logout.html'}, name='logout'),
+    url(r'^home/$', basic_views.main_page, name='home'),
     url(r'^admin/', admin.site.urls),
 ]
