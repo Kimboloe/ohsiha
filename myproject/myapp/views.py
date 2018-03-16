@@ -3,18 +3,24 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 
+import json
+import requests
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from myapp.models import Spotify_data, Song
+
 def main_page(request):
-    return render(request, 'base.html', {})
+
+    s = Spotify_data.objects.get(name='test_data')
+    songs = s.songs.all()
+
+    return render(request, 'base.html', {'songs' : songs})
 
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            '''username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)'''
             return redirect('home')
     else:
         form = UserCreationForm()
