@@ -3,12 +3,69 @@
   <head>
     <meta charset="utf-8">
     <title>Entertain yourself</title>
+
+    {% load staticfiles %}
+    {% load bootstrap3 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
   </head>
   <body>
-    <h1>Welcome to the world of shitty programming</h1>
-    <p>At this page you will a mashup of todays hottest songs, videos, news etc.</p>
-    <p>Enjoy!!</p>
-    <a href="http://127.0.0.1:8000/login">login</a>
-    <a href="http://127.0.0.1:8000/logout">logout</a>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <h1>Welcome</h1>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    Log in
+                    <span class="caret"></span>
+                </a>
+                <div class="dropdown-menu login-dialog">
+                    <form id="login">
+                        <p>Sign in</p>
+                        {% csrf_token %}
+                        {% if login_form.errors %}
+                            {{ login_form.errors }}
+                        {% endif %}
+                        {{ login_form.as_p }}
+                        <button type="submit" class="btn btn-info">Login</button>
+                        <a href="signup" class="btn btn-info">SignUp</a>
+                    </form>
+                </div>
+                </li>
+            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="spotify">
+      <div class="songs">
+        <h2> Lol Apua! </h2>
+        <h3>Spotify songs</h3>
+        {% for i in songs %}
+          <h5> {{forloop.counter}}: {{i.name}}</h5>
+          <iframe src={{i.iframe_url}} frameborder="0" allow="encrypted-media"
+          allowtransparency="true" height="80px"></iframe><br>
+        {% endfor %}
+      </div>
+      <div class="songs2">
+        <h2> Yaas! </h2>
+        <h3>Top songs!</h3>
+        {% for j in top_tracks %}
+          <h5> {{forloop.counter}}: {{j.Song}} - {{j.Artist}}</h5>
+          <iframe src={{j.URL}} frameborder="0" allow="encrypted-media"
+          allowtransparency="true" height="80px"></iframe><br>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="asd">
+<iframe src="https://open.spotify.com/embed/user/spotifycharts/playlist/37i9dQZEVXbMxcczTSoGwZ" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+    </div>
+    <iframe src="https://open.spotify.com/embed/track/2CPLXPOGo30nWHN1Tjl5Ht" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
   </body>
 </html>

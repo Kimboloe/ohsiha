@@ -6,32 +6,41 @@ h2 {
   margin: 2%;
 }
 
-.login {
-  float: right;
-  align-self: auto;
-  margin: 2%;
-  border-radius: 5px;
-  background-color: #333;
-}
+
 a {
   margin: 10%;
 }
 .spotify{
   align-items: center;
   background-color: #DDD;
-  border-radius: 5px;
+  border-radius: 2px;
   margin: 2%;
-  margin-right: 60%;
+  display: flex;
 }
+
+.spotify > div {
+  flex: 1; /*grow*/
+}
+
 .songs {
   align-items: center;
   background-color: #DDD;
-  border-radius: 5px;
+  border-radius: 2px;
   margin: 2%;
   margin-right: auto;
+  float: left;
+}
+
+.songs2 {
+  align-items: center;
+  background-color: #DDD;
+  border-radius: 2px;
+  margin: 2%;
+  margin-right: auto;
+  float: right;
 }
 
 iframe {
   background-color: #333;
-  border-radius: 5px;
+  border-radius: 2px;
 }
