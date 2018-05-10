@@ -1,6 +1,12 @@
 
 {% block title %}Login{% endblock %}
-
+{% load staticfiles %}
+{% load bootstrap3 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+<script src="{% static 'change_country.js' %}"></script>
+<link rel="stylesheet" href="{% static 'styles.css' %}">
 {% block content %}
   <h2>Login</h2>
   <form method="post">

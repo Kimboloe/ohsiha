@@ -8,7 +8,8 @@
     {% load bootstrap3 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
-
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'change_country.js' %}"></script>
     <link rel="stylesheet" href="{% static 'styles.css' %}">
   </head>
   <body>
@@ -18,32 +19,36 @@
                 <h1>Welcome</h1>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                    Log in
-                    <span class="caret"></span>
-                </a>
-                <div class="dropdown-menu login-dialog">
-                    <form id="login">
-                        <p>Sign in</p>
-                        {% csrf_token %}
-                        {% if login_form.errors %}
-                            {{ login_form.errors }}
-                        {% endif %}
-                        {{ login_form.as_p }}
-                        <button type="submit" class="btn btn-info">Login</button>
-                        <a href="signup" class="btn btn-info">SignUp</a>
-                    </form>
-                </div>
-                </li>
-            </ul>
+              <ul class="navbar-nav ml-auto">
+                  {% if request.user.username %}
+                      <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              {% if request.user.is_superuser == True %}
+                                  [admin]
+                              {% elif request.user.profile.is_developer == True %}
+                                  [dev]
+                              {% endif %}
+                                  {{request.user.username}}
+                          </a>
+                          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                              <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                          </div>
+                      </li>
+                  {% else %}
+                      <li class="nav-item">
+                          <a class="btn btn-info" href="{% url 'login' %}">
+                              Login
+                          </a>
+                      </li>
+                  {% endif %}
+              </ul>
             </div>
         </div>
     </nav>
 
     <div class="spotify">
-      <div class="songs">
+
+      <!--<div class="songs">
         <h2> Lol Apua! </h2>
         <h3>Spotify songs</h3>
         {% for i in songs %}
@@ -51,21 +56,50 @@
           <iframe src={{i.iframe_url}} frameborder="0" allow="encrypted-media"
           allowtransparency="true" height="80px"></iframe><br>
         {% endfor %}
-      </div>
+      </div>-->
+
       <div class="songs2">
-        <h2> Yaas! </h2>
+        <h2> You don't really care for music, do you? </h2>
+        <div class="country_select">
+
+          <p>Select your country:</p>
+          <select id="selected_country" name="country">
+            {% for country, value in countries.items %}
+                {% ifequal country selected_country %}
+                    <option value="{{country}}" selected="selected">{{value}}</option>
+                {% else %}
+                    <option value="{{country}}">{{value}}</option>
+                {% endifequal %}
+            {% endfor %}
+          </select>
+          <a href="{% url 'charts' country_code='fi' %}">
+          <button type="button">ok</button>
+          <!--<input type="submit" id="changeCountry" name="changeCountry" value="ok">-->
+          </a>
+
+        </div>
         <h3>Top songs!</h3>
         {% for j in top_tracks %}
-          <h5> {{forloop.counter}}: {{j.Song}} - {{j.Artist}}</h5>
-          <iframe src={{j.URL}} frameborder="0" allow="encrypted-media"
-          allowtransparency="true" height="80px"></iframe><br>
+          <div id="{{j.Song}}" class="song_div">
+            <h5> {{forloop.counter}}: {{j.Song}} - {{j.Artist}}</h5>
+            <iframe src={{j.URL}} frameborder="0" allow="encrypted-media"
+            allowtransparency="true" height="80px"></iframe><br>
+            <button onclick="test('{{j.Song}}', '{{j.Artist}}')">lyrics</button>
+          </div>
         {% endfor %}
       </div>
-    </div>
 
-    <div class="asd">
-<iframe src="https://open.spotify.com/embed/user/spotifycharts/playlist/37i9dQZEVXbMxcczTSoGwZ" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+      <div class="map">
+        <h2>Very fancy map yes yes...</h2>
+        <iframe src="https://spotifymaps.github.io/musicalcities/" width="700" height="600" frameborder="0"></iframe>
+        <h5>
+          Above you can see the spotifyMap embedded in iframe.
+          You can navigate trough various countries and toggle the
+          toplists in different locations.
+        </h5>
+      </div>
+
     </div>
-    <iframe src="https://open.spotify.com/embed/track/2CPLXPOGo30nWHN1Tjl5Ht" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+    <div id='rg_embed_link_3642086' class='rg_embed_link' data-song-id='3642086'>Read <a href='https://genius.com/Nicki-minaj-chun-li-lyrics'>“Chun-Li” by Nicki Minaj</a> on Genius</div> <script crossorigin src='//genius.com/songs/3642086/embed.js'></script>
   </body>
 </html>

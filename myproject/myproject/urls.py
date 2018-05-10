@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from myapp import views as basic_views
+from django.urls import include, path
 
 urlpatterns = [
     url(r'^signup/$', basic_views.signup, name='signup'),
@@ -24,4 +25,5 @@ urlpatterns = [
     url(r'^logout/$', auth_views.logout,{'template_name': 'registration/logout.html'}, name='logout'),
     url(r'^home/$', basic_views.main_page, name='home'),
     url(r'^admin/', admin.site.urls),
+    path('charts/<str:country_code>/', basic_views.charts, name='charts'),
 ]

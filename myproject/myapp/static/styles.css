@@ -11,7 +11,7 @@ a {
   margin: 10%;
 }
 .spotify{
-  align-items: center;
+  align-items: flex-start ;
   background-color: #DDD;
   border-radius: 2px;
   margin: 2%;
@@ -37,10 +37,38 @@ a {
   border-radius: 2px;
   margin: 2%;
   margin-right: auto;
-  float: right;
+  float: left;
+}
+
+.map {
+  display: block;
+  border-radius: 2px;
+  margin: 2%;
+  float: left;
 }
 
 iframe {
   background-color: #333;
   border-radius: 2px;
+}
+.all_content {
+  align-items: flex-start ;
+  background-color: #191414;
+  border-radius: 2px;
+  margin: 2%;
+  display: flex;
+}
+.all_content > div {
+  flex: 1; /*grow*/
+}
+.container1 {
+  float:left;
+  margin: 5%;
+}
+.container2 {
+  float: right;
+  margin: 5%;
+}
+.container3 {
+  margin: 5%
 }

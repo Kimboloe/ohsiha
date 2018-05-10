@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Charts</title>
+    {% load staticfiles %}
+    {% load bootstrap3 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'change_country.js' %}"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/js/themes/gray.js"></script>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+              <a href="{% url 'home' %}">
+                <h1>Top-songs compared your country vs global</h1>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="navbar-nav ml-auto">
+                  {% if request.user.username %}
+                      <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              {% if request.user.is_superuser == True %}
+                                  [admin]
+                              {% elif request.user.profile.is_developer == True %}
+                                  [dev]
+                              {% endif %}
+                                  {{request.user.username}}
+                          </a>
+                          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                              <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                          </div>
+                      </li>
+                  {% else %}
+                      <li class="nav-item">
+                          <a class="btn btn-info" href="{% url 'login' %}">
+                              Login
+                          </a>
+                      </li>
+                  {% endif %}
+              </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="all_content">
+      <div class="alone_charts">
+        <div id="container1" style="width:100%; height:300px;"></div>
+        <div id="container2" style="width:100%; height:300px;"></div>
+      </div>
+        <div id="container3" style="width:50%; height:600px;"></div>
+    </div>
+    <div id="container" style="width:50%; height:300px;"></div>
+    <script type="text/javascript">
+
+    var list = {{song_info|safe}};
+    var list2 = {{streams|safe}};
+    var country = "{{country}}";
+
+    $(function () {
+      var myChart = Highcharts.chart('container1', {
+          chart: {
+              type: 'bar'
+          },
+          title: {
+              text: 'Top songs - ' + country
+          },
+          xAxis: {
+              categories: list
+          },
+          yAxis: {
+              title: {
+                  text: 'Streams'
+              }
+          },
+          series: [{
+              name: country,
+              data: list2,
+              color: '#1db954'
+          }]
+      });
+    });
+    </script>
+    <script type="text/javascript">
+
+    var list_global = {{song_info_global|safe}};
+    var list2_global = {{streams_global|safe}};
+
+    $(function () {
+      var myChart = Highcharts.chart('container2', {
+          chart: {
+              type: 'bar'
+          },
+          title: {
+              text: 'Top songs - Global'
+          },
+          xAxis: {
+              categories: list_global
+          },
+          yAxis: {
+              title: {
+                  text: 'Streams'
+              }
+          },
+          series: [{
+              name: 'Global',
+              data: list2_global
+
+          }]
+      });
+    });
+    </script>
+    <script type="text/javascript">
+
+    var matches = {{matches|safe}};
+    var info = matches[0];
+    var country_streams = matches[1];
+    var globals = matches[2];
+
+    $(function () {
+      var myChart = Highcharts.chart('container3', {
+          chart: {
+              type: 'bar'
+          },
+          title: {
+              text: 'Global vs ' + country
+          },
+          xAxis: {
+              categories: info
+          },
+          yAxis: {
+              title: {
+                  text: 'Streams'
+              }
+          },
+          series: [{
+              name: 'Global',
+              data: globals
+
+          },{
+            name: country,
+            data: country_streams,
+            color: '#1db954'
+          }]
+      });
+    });
+    </script>
+  </body>
+</html>
