@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^signup/$', basic_views.signup, name='signup'),
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout,{'template_name': 'registration/logout.html'}, name='logout'),
+    path('home/<str:country_code>/', basic_views.main_page, name='home'),
     url(r'^home/$', basic_views.main_page, name='home'),
     url(r'^admin/', admin.site.urls),
     path('charts/<str:country_code>/', basic_views.charts, name='charts'),

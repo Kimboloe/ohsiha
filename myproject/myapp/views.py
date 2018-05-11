@@ -17,13 +17,16 @@ from django.utils import timezone
 from spotipy.oauth2 import SpotifyClientCredentials
 from myapp.models import SpotifyCharts, Song, Comment
 
-def main_page(request):
+def main_page(request, country_code="global"):
 
     file = open('spotify_countries.json')
     countries = json.load(file)
     comments = Comment.objects.all().order_by("date")
 
-    top_ten = get_top_ten("global")
+    if country_code == None:
+        country_code = "global"
+
+    top_ten = get_top_ten(country_code)
 
     login_form = AuthenticationForm(request.POST)
 
@@ -36,11 +39,8 @@ def main_page(request):
         if first == 'Song':
             song = data['Song'][0]
             artist = data['Artist'][0]
-
+            #call get_lyrics scraper
             lyrics = get_lyrics(song, artist)
-            print(song, " : ",artist)
-            print(lyrics)
-
             return HttpResponse(lyrics, content_type="text")
 
     if request.method == 'POST' and request.is_ajax():
@@ -175,6 +175,7 @@ def get_top_ten(country_code):
     return top_ten
 
 def get_lyrics(song, artist):
+    #Scrape lyrics using genius api
 
     #for genius api----------
     #client_id = p02kVfs2YI-67OpOf29arN85zlcefNmOJqjBBUt8GJEIDqpDqW9ySP5826GvN9mZ
@@ -218,6 +219,7 @@ def get_lyrics(song, artist):
     return lyrics
 
 def get_matching_songs(chart1, chart2):
+    #return max twenty matching songs
 
     songs1 = chart1.songs.all()
     songs2 = chart2.songs.all()

@@ -22,12 +22,24 @@ function test(song, artist) {
 
 $(document).ready(() => {
     console.log("Ready?");
-    $('#changeCountry').click(function() {
+
+    $('#changeCountry').click(function(){
+      var elem = document.getElementById("selected_country");
+      var code = elem.options[elem.selectedIndex].value;
+      var url = window.location.toString()
+      var path_name = window.location.pathname.toString();
+      var new_path = "/home/" + code.toString();
+      var newUrl = url.replace(path_name, new_path);
+      console.log(code," : ",path_name," : ", url, " : ", newUrl);
+      window.location.assign(newUrl);
+    });
+
+    $('#charts').click(function() {
       var doc = document.getElementById("selected_country");
       var country_code = doc.options[doc.selectedIndex].value;
       console.log(country_code);
       var old_url = window.location.toString();
-      var new_url = old_url.replace("home", "charts/" + country_code.toString());
+      var new_url = old_url.replace(window.location.pathname.toString(), "/charts/" + country_code.toString());
       window.location.assign(new_url);
 
     });
