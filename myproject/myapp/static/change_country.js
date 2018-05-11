@@ -1,31 +1,24 @@
 
-var event = new Event('lyrics');
-
-window.addEventListener('lyrics', e => handleEvent(e));
-
 function test(song, artist) {
   console.log(song);
   var content = {'Song': song, 'Artist': artist};
-  $.ajax({
-    type: "GET",
-    data: content,
-    success: function(data){
-      document.getElementById(song).append(data);
-    }
-  });
+  var doc = document.getElementById("lyrics-"+song.toString());
+  var val = doc.innerText.toString();
+  //var val = doc.options[doc.selectedIndex].text;
+  console.log(val);
+
+  if(val.includes("No lyrics loaded")){
+    $.ajax({
+      type: "GET",
+      data: content,
+      success: function(data){
+        doc.innerText = "";
+        doc.append(data);
+      }
+    });
+  }
 }
 
-const handleEvent = e => {
-  data = e.data;
-  $.ajax({
-    type: "GET",
-    data: data,
-    success: function(data){
-      console.log(data);
-    }
-  });
-
-}
 
 $(document).ready(() => {
     console.log("Ready?");
@@ -33,13 +26,71 @@ $(document).ready(() => {
       var doc = document.getElementById("selected_country");
       var country_code = doc.options[doc.selectedIndex].value;
       console.log(country_code);
-      $.ajax({
-        type: "GET",
-        data: country_code,
-        success: function(data){
-          console.log(data);
-        }
+      var old_url = window.location.toString();
+      var new_url = old_url.replace("home", "charts/" + country_code.toString());
+      window.location.assign(new_url);
+
+    });
+
+    $("#comment-form").submit(function(event) {
+
+       /* stop form from submitting normally */
+       event.preventDefault();
+
+      var $inputs = $('#comment-form :input');
+
+      var values = {};
+      $inputs.each(function() {
+        values[this.name] = $(this).val();
       });
-    }
-    );
+       console.log(values);
+       console.log(username);
+       var name = username;
+       var text = values["comment"];
+       console.log(text)
+       if(name == ""){
+         name = "anonymous";
+       }
+
+       var message = {"messageType": "comment", "user": name, "comment": text};
+
+       $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+             function getCookie(name) {
+                 var cookieValue = null;
+                 if (document.cookie && document.cookie != '') {
+                     var cookies = document.cookie.split(';');
+                     for (var i = 0; i < cookies.length; i++) {
+                         var cookie = jQuery.trim(cookies[i]);
+                         // Does this cookie string begin with the name we want?
+                         if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                             break;
+                         }
+                     }
+                 }
+                 return cookieValue;
+             }
+             if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                 // Only send the token to relative URLs i.e. locally.
+                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+             }
+          }
+        });
+        $.ajax({
+          url: window.location.pathname,
+          type: "POST",
+          data: JSON.stringify(message),
+          contentType: 'application/json',
+          success: function(data) {
+            console.log(data);
+            var doc = document.getElementById("comments");
+            var h5 = document.createElement('h5');
+            h5.appendChild(document.createTextNode(data));
+            doc.append(h5);
+          }
+        });
+
+     });
+
 });

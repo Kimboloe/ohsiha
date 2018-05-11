@@ -8,6 +8,9 @@
     {% load bootstrap3 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
+    <script type="text/javascript">
+      var username = '{{request.user.username}}';
+    </script>
     <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
     <script src="{% static 'change_country.js' %}"></script>
     <link rel="stylesheet" href="{% static 'styles.css' %}">
@@ -41,6 +44,11 @@
                           </a>
                       </li>
                   {% endif %}
+                  <li class="nav-item">
+                    <a class="btn btn-info" href="{% url 'logout' %}">
+                        Logout
+                    </a>
+                  </li>
               </ul>
             </div>
         </div>
@@ -48,18 +56,8 @@
 
     <div class="spotify">
 
-      <!--<div class="songs">
-        <h2> Lol Apua! </h2>
-        <h3>Spotify songs</h3>
-        {% for i in songs %}
-          <h5> {{forloop.counter}}: {{i.name}}</h5>
-          <iframe src={{i.iframe_url}} frameborder="0" allow="encrypted-media"
-          allowtransparency="true" height="80px"></iframe><br>
-        {% endfor %}
-      </div>-->
-
-      <div class="songs2">
-        <h2> You don't really care for music, do you? </h2>
+      <div class="songs">
+        <h2> Here is some music for you! </h2>
         <div class="country_select">
 
           <p>Select your country:</p>
@@ -72,10 +70,8 @@
                 {% endifequal %}
             {% endfor %}
           </select>
-          <a href="{% url 'charts' country_code='fi' %}">
-          <button type="button">ok</button>
-          <!--<input type="submit" id="changeCountry" name="changeCountry" value="ok">-->
-          </a>
+
+          <button type="button" id="changeCountry">ok</button>
 
         </div>
         <h3>Top songs!</h3>
@@ -84,22 +80,39 @@
             <h5> {{forloop.counter}}: {{j.Song}} - {{j.Artist}}</h5>
             <iframe src={{j.URL}} frameborder="0" allow="encrypted-media"
             allowtransparency="true" height="80px"></iframe><br>
-            <button onclick="test('{{j.Song}}', '{{j.Artist}}')">lyrics</button>
+            <button onclick="test('{{j.Song}}', '{{j.Artist}}')">LoadLyrics</button>
+            <div class="dropdown">
+              <span>Lyrics</span>
+              <div class="dropdown-content" id="lyrics-{{j.Song}}">
+                <p>No lyrics loaded <br>
+                  (lyrics take while to load)
+                </p>
+              </div>
+            </div>
           </div>
         {% endfor %}
       </div>
 
       <div class="map">
-        <h2>Very fancy map yes yes...</h2>
         <iframe src="https://spotifymaps.github.io/musicalcities/" width="700" height="600" frameborder="0"></iframe>
         <h5>
           Above you can see the spotifyMap embedded in iframe.
           You can navigate trough various countries and toggle the
           toplists in different locations.
         </h5>
+        <h2>Leave a comment below</h2>
+        <div id="comments" style="overflow:auto; height:400px; width:90%; background-color:white;">
+          {% for c in comments %}
+            <h5>< {{c.user}} >: {{c.comment}}</h5><br>
+          {% endfor %}
+        </div>
+        <form id="comment-form" action="POST">
+         Comment:
+         <input id="comment-content" type="text" name="comment" value="Write something">
+         <input id="comment-submit" type="submit" value="post">
+        </form>
       </div>
 
     </div>
-    <div id='rg_embed_link_3642086' class='rg_embed_link' data-song-id='3642086'>Read <a href='https://genius.com/Nicki-minaj-chun-li-lyrics'>“Chun-Li” by Nicki Minaj</a> on Genius</div> <script crossorigin src='//genius.com/songs/3642086/embed.js'></script>
   </body>
 </html>

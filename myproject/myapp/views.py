@@ -1,5 +1,6 @@
 from django.http import HttpResponse, Http404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
 
@@ -11,51 +12,20 @@ import csv
 import pandas as pd
 from bs4 import BeautifulSoup
 import pycountry
+from django.utils import timezone
 
 from spotipy.oauth2 import SpotifyClientCredentials
-from myapp.models import SpotifyCharts, Song
+from myapp.models import SpotifyCharts, Song, Comment
 
 def main_page(request):
 
     file = open('spotify_countries.json')
     countries = json.load(file)
+    comments = Comment.objects.all().order_by("date")
 
     top_ten = get_top_ten("global")
 
-    #s = Spotify_data.objects.get(name='test_data')
-    #songs = s.songs.all()
     login_form = AuthenticationForm(request.POST)
-
-
-    client_id = '2e68207dbeb34b78a1daad0e399afd98'
-    client_secret = 'a3649535f746487fa955afb2fbad4cce'
-
-    client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
-
-    sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
-    '''
-    result = sp.categories(country='FI', locale=None, limit=20, offset=0)
-
-    for count,i in enumerate(result['categories']['items']):
-        print(count)
-        for j in i:
-            print(j, ' : ',i[j])
-        #print(result['categories']['items'][i])
-        print()
-    '''
-
-
-    result = sp.category_playlists(category_id='toplists', country='FI', limit=20, offset=0)
-
-    #print(result)
-
-    '''for count,i in enumerate(result['playlists']['items']):
-        print(count)
-        for j in i:
-            print(j, ' : ',i[j])
-        #print(result['categories']['items'][i])
-        print()'''
 
     if request.method == 'GET' and request.is_ajax():
 
@@ -73,14 +43,18 @@ def main_page(request):
 
             return HttpResponse(lyrics, content_type="text")
 
-        top_ten = get_top_ten(country_code)
-        print(top_ten[0])
-        asd = {"this is": "json"}
-        response = json.dumps(top_ten)
-        return HttpResponse(response, content_type="application/json")
+    if request.method == 'POST' and request.is_ajax():
+        json_response = json.loads(request.body)
+        if json_response["messageType"] == "comment":
+            comment = json_response["comment"]
+            user = json_response["user"]
+            new_comment = Comment(user=user, comment=comment)
+            new_comment.save()
+            response = "< " + user + " >: " + comment
+            return HttpResponse(response)
 
     return render(request, 'base.html', {'login_form': login_form,
-     'top_tracks': top_ten , 'countries': countries})
+     'top_tracks': top_ten , 'countries': countries, 'comments': comments})
 
 def charts(request, country_code):
     song_info = []
@@ -90,7 +64,15 @@ def charts(request, country_code):
     song_info_global = []
     streams_global = []
 
-    chart1 = SpotifyCharts.objects.get(country_code=country_code)
+    chart1 = SpotifyCharts.objects.filter(country_code=country_code).order_by('date')[0]
+    date, rest = chart1.date.strftime("%Y-%m-%d %H:%M:%S").split(" ")
+    if not check_date(date):
+        #outdated -> load new
+        country = chart1.country
+        new_chart = SpotifyCharts(country=country, country_code=country_code)
+        new_chart.save()
+        new_chart.read_data()
+        chart1 = new_chart
 
     country = chart1.country
 
@@ -109,7 +91,15 @@ def charts(request, country_code):
         streams.append(song_streams)
         count +=1
 
-    chart2 = SpotifyCharts.objects.get(country_code="global")
+    chart2 = SpotifyCharts.objects.filter(country_code="global").order_by('date')[0]
+    date, rest = chart2.date.strftime("%Y-%m-%d %H:%M:%S").split(" ")
+    if not check_date(date):
+        #outdated -> load new
+        country2 = chart2.country
+        new_chart = SpotifyCharts(country=country2, country_code='global')
+        new_chart.save()
+        new_chart.read_data()
+        chart2 = new_chart
 
     songs2 = chart2.songs.all()
 
@@ -136,7 +126,8 @@ def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            auth_login(request, user)
             return redirect('home')
     else:
         form = UserCreationForm()
@@ -152,42 +143,35 @@ def logout(request):
 
 def get_top_ten(country_code):
 
-    url_begin = 'https://spotifycharts.com/regional/'
-    url_end = '/daily/latest/download'
-    url = url_begin + country_code + url_end
-    #koska spotify apissa on puutteita, pitää hakea csv-tiedosto erikseen
-    result = requests.get(url)
-    #result = requests.get('https://spotifycharts.com/viral/global/daily/latest/download', verify=False)
+    #get latest chart from database
+    chart = SpotifyCharts.objects.filter(country_code=country_code).order_by('date')[0]
 
-    decoded_content = result.content.decode('utf-8')
+    date, rest = chart.date.strftime("%Y-%m-%d %H:%M:%S").split(" ")
 
-    cr = csv.reader(decoded_content.splitlines(), delimiter=',')
-    top_list = list(cr)
-    top_list.remove(top_list[0])
+    if not check_date(date):
+        #outdated -> load new
+        country = chart.country
+        new_chart = SpotifyCharts(country=country, country_code=country_code)
+        new_chart.save()
+        new_chart.read_data()
+        chart = new_chart
+
+    #get the top ten
     top_ten = []
-
     count = 0
-
-    for row in top_list:
+    for song in chart.songs.all():
+        d = {}
         if count == 10:
             break
-        inner_count = 0
-        d = {}
 
-        for i in row:
-            if inner_count == 1:
-                d['Song'] = i
-            elif inner_count == 2:
-                d['Artist'] = i
-            elif inner_count == 3:
-                d['Streams'] = i
-            elif inner_count == 4:
-                d['URL'] = 'https://open.spotify.com/embed?uri=' + i
-
-            inner_count +=1
+        d['Song'] = song.name
+        d['Artist'] = song.artist
+        d['Streams'] = song.streams
+        d['URL'] = song.iframe_url
 
         top_ten.append(d.copy())
-        count +=1
+        count += 1
+
     return top_ten
 
 def get_lyrics(song, artist):
@@ -269,3 +253,35 @@ def get_matching_songs(chart1, chart2):
     return_list.append(streams_global)
 
     return return_list
+
+def check_date(date):
+    #return false if date is too old
+
+    year, month, day = date.split("-")
+
+    date2, rest = timezone.now().strftime("%Y-%m-%d %H:%M:%S").split(" ")
+    year2, month2, day2 = date2.split("-")
+
+    #this should be the case
+    if year == year2:
+        if month == month2:
+            if int(day2) - int(day) >= 7:
+                return False
+            else:
+                return True
+        else:
+            days = 30 - int(day) + int(day2)
+            if days >= 7:
+                return False
+            else:
+                return True
+    else:
+        print("how did we end up here")
+        if int(month) == 12 and int(month2)==1:
+            days = 30 - int(day) + int(day2)
+            if days >= 7:
+                return False
+            else:
+                return True
+        else:
+            return False
